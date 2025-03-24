@@ -1,3 +1,5 @@
+#![doc = include_str!("../README.md")]
+
 use std::borrow::Cow;
 use std::cell::LazyCell;
 use std::fmt;
@@ -19,6 +21,42 @@ use tracing_subscriber::registry::LookupSpan;
 const FIELD_EXCEPTION_MESSAGE: &str = "exception.message";
 const FIELD_EXCEPTION_STACKTRACE: &str = "exception.stacktrace";
 
+/// A compatibility layer for using libraries instrumented with
+/// `tokio-tracing` in applications using `fastrace`.
+///
+/// This layer collects spans and events created using the tokio-tracing ecosystem and
+/// forwards them to fastrace's collectors.
+///
+/// # Example
+///
+/// ```
+/// use fastrace::collector::Config;
+/// use fastrace::collector::ConsoleReporter;
+/// use fastrace::prelude::SpanContext;
+/// use fastrace_tracing::FastraceCompatLayer;
+/// use tracing_subscriber::layer::SubscriberExt;
+///
+/// // Set up fastrace reporter.
+/// fastrace::set_reporter(ConsoleReporter, Config::default());
+///
+/// // Create a tracing subscriber with the FastraceCompatLayer.
+/// let subscriber = tracing_subscriber::Registry::default().with(FastraceCompatLayer::new());
+/// tracing::subscriber::set_global_default(subscriber).unwrap();
+///
+/// // Create a fastrace root span.
+/// let root = fastrace::Span::root("root", SpanContext::random());
+///
+/// // Set a fastrace span as the local parent - this is critical for connecting the
+/// // tokio-tracing spans with the fastrace span.
+/// let _guard = root.set_local_parent();
+///
+/// // Spans from tokio-tracing will be captured by fastrace.
+/// let span = tracing::span!(tracing::Level::TRACE, "my_span");
+/// let _enter = span.enter();
+///
+/// // Events from tokio-tracing will also be captured by fastrace.
+/// tracing::info!("This event will be captured by fastrace");
+/// ```
 pub struct FastraceCompatLayer<S> {
     location: bool,
     with_threads: bool,
@@ -229,6 +267,7 @@ impl field::Visit for SpanAttributeVisitor<'_> {
 impl<S> FastraceCompatLayer<S>
 where S: Subscriber + for<'span> LookupSpan<'span>
 {
+    /// Creates a new [`FastraceCompatLayer`] with default settings.
     pub fn new() -> Self {
         FastraceCompatLayer {
             location: true,
@@ -238,26 +277,25 @@ where S: Subscriber + for<'span> LookupSpan<'span>
         }
     }
 
-    /// Sets whether or not span and event metadata should include OpenTelemetry
-    /// attributes with location information, such as the file, module and line number.
+    /// Configures whether source code location information is included in spans.
     ///
-    /// These attributes follow the [OpenTelemetry semantic conventions for
-    /// source locations][conv].
+    /// When enabled, span properties will include:
+    /// - `code.filepath`: The file where the span was created
+    /// - `code.namespace`: The module path where the span was created
+    /// - `code.lineno`: The line number where the span was created
     ///
-    /// By default, locations are enabled.
-    ///
-    /// [conv]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/attributes.md#source-code-attributes/
+    /// Default is `true`.
     pub fn with_location(self, location: bool) -> Self {
         Self { location, ..self }
     }
 
-    /// Sets whether or not spans record additional attributes for the thread
-    /// name and thread ID of the thread they were created on, following the
-    /// [OpenTelemetry semantic conventions for threads][conv].
+    /// Configures whether thread information is included in spans.
     ///
-    /// By default, thread attributes are enabled.
+    /// When enabled, span properties will include:
+    /// - `thread.id`: The numeric ID of the thread
+    /// - `thread.name`: The name of the thread (if available)
     ///
-    /// [conv]: https://github.com/open-telemetry/semantic-conventions/blob/main/docs/general/attributes.md#general-thread-attributes/
+    /// Default is `true`.
     pub fn with_threads(self, threads: bool) -> Self {
         Self {
             with_threads: threads,
@@ -265,14 +303,12 @@ where S: Subscriber + for<'span> LookupSpan<'span>
         }
     }
 
-    /// Sets whether or not span metadata should include the `tracing` verbosity level information
-    /// as a `level` field.
+    /// Configures whether level information is included in span properties.
     ///
-    /// The level is always added to events, and based on
-    /// [`OpenTelemetryLayer::with_error_events_to_status`] error-level events will mark the
-    /// span status as an error.
+    /// When enabled, spans will include the tracing level (trace, debug, info, etc.)
+    /// as a property named `level`.
     ///
-    /// By default, level information is disabled.
+    /// Default is `false`.
     pub fn with_level(self, level: bool) -> Self {
         Self {
             with_level: level,
@@ -395,8 +431,8 @@ where S: Subscriber + for<'span> LookupSpan<'span>
 
     fn on_record(&self, id: &Id, values: &Record<'_>, ctx: Context<'_, S>) {
         let span = ctx.span(id).expect("Span not found, this is a bug");
-        let mut extenstion = span.extensions_mut();
-        let Some(fastrace_span) = extenstion.get_mut::<fastrace::Span>() else {
+        let mut extension = span.extensions_mut();
+        let Some(fastrace_span) = extension.get_mut::<fastrace::Span>() else {
             return;
         };
         values.record(&mut SpanAttributeVisitor { fastrace_span });

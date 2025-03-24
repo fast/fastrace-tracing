@@ -3,7 +3,7 @@ name = "fastrace-tracing"
 version = "0.1.0"
 
 categories = ["development-tools::debugging"]
-description = "A Poem middleware for propagating trace context for fastrace"
+description = "A compatibility layer that connects tokio-tracing with fastrace tracing library."
 keywords = ["tracing", "fastrace", "compatible", "tokio"]
 readme = "README.md"
 
@@ -14,10 +14,17 @@ rust-version = "1.80"
 
 [dependencies]
 fastrace = "0.7"
-tracing = { version = "0.1.35", default-features = false, features = ["std", "attributes"] }
-tracing-subscriber = { version = "0.3.0", default-features = false, features = ["registry", "std", "fmt"] }
-tracing-core = "0.1.28"
 take_mut = "0.2.2"
+tracing = { version = "0.1.35", default-features = false, features = [
+  "std",
+  "attributes",
+] }
+tracing-core = "0.1.28"
+tracing-subscriber = { version = "0.3.0", default-features = false, features = [
+  "registry",
+  "std",
+  "fmt",
+] }
 
 [dev-dependencies]
 fastrace = { version = "0.7", features = ["enable"] }
