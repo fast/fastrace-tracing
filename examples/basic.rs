@@ -20,7 +20,7 @@ fn main() {
         // Create a fastrace root span that will start a new trace.
         let root = fastrace::Span::root("root", SpanContext::random());
 
-        // Set a fastrace span as the local parent - this is critical for connecting the 
+        // Set a fastrace span as the local parent - this is critical for connecting the
         // tokio-tracing spans with the fastrace span.
         let _guard = root.set_local_parent();
 

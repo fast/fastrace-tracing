@@ -45,15 +45,15 @@ const FIELD_EXCEPTION_STACKTRACE: &str = "exception.stacktrace";
 ///
 /// // Create a fastrace root span.
 /// let root = fastrace::Span::root("root", SpanContext::random());
-/// 
-/// // Set a fastrace span as the local parent - this is critical for connecting the 
+///
+/// // Set a fastrace span as the local parent - this is critical for connecting the
 /// // tokio-tracing spans with the fastrace span.
 /// let _guard = root.set_local_parent();
 ///
 /// // Spans from tokio-tracing will be captured by fastrace.
 /// let span = tracing::span!(tracing::Level::TRACE, "my_span");
 /// let _enter = span.enter();
-/// 
+///
 /// // Events from tokio-tracing will also be captured by fastrace.
 /// tracing::info!("This event will be captured by fastrace");
 /// ```
@@ -431,8 +431,8 @@ where S: Subscriber + for<'span> LookupSpan<'span>
 
     fn on_record(&self, id: &Id, values: &Record<'_>, ctx: Context<'_, S>) {
         let span = ctx.span(id).expect("Span not found, this is a bug");
-        let mut extenstion = span.extensions_mut();
-        let Some(fastrace_span) = extenstion.get_mut::<fastrace::Span>() else {
+        let mut extension = span.extensions_mut();
+        let Some(fastrace_span) = extension.get_mut::<fastrace::Span>() else {
             return;
         };
         values.record(&mut SpanAttributeVisitor { fastrace_span });
