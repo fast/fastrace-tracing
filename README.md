@@ -23,7 +23,7 @@ Add `fastrace-tracing` to your project:
 [dependencies]
 fastrace = { version = "0.7", features = ["enable"] }
 fastrace-tracing = "0.1"
-tracing = "0.1"
+tracing = { version = "0.1", features = ["log"] }
 tracing-subscriber = "0.3"
 ```
 
@@ -34,13 +34,16 @@ use fastrace::collector::{Config, ConsoleReporter};
 use fastrace::prelude::*;
 use tracing_subscriber::layer::SubscriberExt;
 
-// Initialize fastrace.
-fastrace::set_reporter(ConsoleReporter, Config::default());
-
 // Set up tokio-tracing with the fastrace compatibility layer.
 let subscriber = tracing_subscriber::Registry::default()
     .with(fastrace_tracing::FastraceCompatLayer::new());
 tracing::subscriber::set_global_default(subscriber).unwrap();
+
+// Initialize fastrace.
+fastrace::set_reporter(ConsoleReporter, Config::default());
+
+// Initialize logging.
+logforth::stderr().apply();
 
 {
     // Create a fastrace root span.
@@ -58,7 +61,7 @@ tracing::subscriber::set_global_default(subscriber).unwrap();
     tracing::info!("This will be captured by fastrace");
 }
 
-// Don't forget to flush before your application exits.
+// Flush any remaining traces before the program exits.
 fastrace::flush();
 ```
 
