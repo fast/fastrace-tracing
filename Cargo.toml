@@ -1,6 +1,6 @@
 [package]
 name = "fastrace-tracing"
-version = "0.1.0"
+version = "0.1.1"
 
 categories = ["development-tools::debugging"]
 description = "A compatibility layer that connects tokio-tracing with fastrace tracing library."

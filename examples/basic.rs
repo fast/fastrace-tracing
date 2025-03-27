@@ -32,6 +32,7 @@ fn main() {
     fastrace::flush();
 }
 
+#[tracing::instrument]
 fn make_traces() {
     // Create a tokio-tracing span.
     let span = tracing::span!(tracing::Level::TRACE, "send request", work_units = 2);
