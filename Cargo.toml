@@ -15,13 +15,13 @@ rust-version = "1.80"
 [dependencies]
 fastrace = "0.7"
 take_mut = "0.2.2"
-tracing = { version = "0.1", default-features = false, features = ["std"] }
+tracing = { version = "0.1", default-features = false }
 tracing-core = "0.1"
 tracing-subscriber = { version = "0.3", default-features = false, features = [
   "registry",
-  "std",
 ] }
 
 [dev-dependencies]
 fastrace = { version = "0.7", features = ["enable"] }
 logforth = "0.23"
+tracing = { version = "0.1" }
