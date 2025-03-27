@@ -57,7 +57,7 @@ logforth::stderr().apply();
     let span = tracing::span!(tracing::Level::INFO, "my_operation");
     let _enter = span.enter();
 
-    // Events from tokio-tracing will also be captured by fastrace.
+    // Events from tokio-tracing will be captured by both fastrace and log.
     tracing::info!("This will be captured by fastrace");
 }
 
