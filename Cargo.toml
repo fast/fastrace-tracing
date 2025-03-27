@@ -16,16 +16,13 @@ rust-version = "1.80"
 fastrace = "0.7"
 logforth = "0.23"
 take_mut = "0.2.2"
-tracing = { version = "0.1.35", default-features = false, features = [
-  "std",
-  "attributes",
-] }
-tracing-core = "0.1.28"
-tracing-subscriber = { version = "0.3.0", default-features = false, features = [
+tracing = { version = "0.1", default-features = false, features = ["std"] }
+tracing-core = "0.1"
+tracing-subscriber = { version = "0.3", default-features = false, features = [
   "registry",
   "std",
-  "fmt",
 ] }
 
 [dev-dependencies]
 fastrace = { version = "0.7", features = ["enable"] }
+logforth = "0.23"
